@@ -26,8 +26,10 @@ def run():
 
     sign_key = SigningKey(key)
     
+    voter_list = ['Vidar', 'Alice']
     # HW2: PreAuth
-    pre_response = stub.PreAuth(eVoting_pb2.VoterName(name = "Vidar"))
+    voter_id = int(input('Input your voter id (0: Viadr, 1: Alice)\n'))
+    pre_response = stub.PreAuth(eVoting_pb2.VoterName(name = voter_list[voter_id]))
 
     # HW2: Auth
     challenge = pre_response.value
@@ -35,7 +37,7 @@ def run():
     signature = signed.signature
 
     auth_response = stub.Auth(eVoting_pb2.AuthRequest(
-        name = eVoting_pb2.VoterName(name = "Vidar"),\
+        name = eVoting_pb2.VoterName(name = voter_list[voter_id]),\
         response = eVoting_pb2.Response(value = bytes(signature))\
     ))
 
@@ -57,7 +59,7 @@ def run():
     election_name = 'what color do you like ?'
     groups = ["Group A", "Group B"]
     choices = ["Red", "Blue", "White", "Yellow"]
-    due = datetime.now() + timedelta(seconds=2)
+    due = datetime.now() + timedelta(seconds=100)
 
     curElection = eVoting_pb2.Election()
     curElection.name = election_name
@@ -70,10 +72,12 @@ def run():
     print('Response message of CreateElection')
     print(f'Status: {creat_election_response.code}\n')
 
+    
     # call castvote
-    r = random.randint(0, 3)
+    #r = random.randint(0, 3)
+    r = int(input("choice id (0: red, 1: blue, 2: white, 3: yellow)\n"))
     castvote_response = stub.CastVote(eVoting_pb2.Vote(election_name = election_name, \
-                                                   choice_name = choices[r], \
+                                                    choice_name = choices[r], \
                                                     token = eVoting_pb2.AuthToken(value = bytes(token))))
     
     print('Response message of CastVote')
@@ -85,7 +89,6 @@ def run():
     print('Response message of GetResult ')
     print(f'Status: {get_result_response.status}\n')
 
-    
     # result
     for votecnt in get_result_response.counts:
         print("Choice {} got {} ballots in election!".format(votecnt.choice_name, votecnt.count))

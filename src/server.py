@@ -71,6 +71,7 @@ class eVotingServicer(eVoting_pb2_grpc.eVotingServicer):
         verify_key = sign_key.verify_key
         verify_key_bytes = verify_key.encode()
 
+        # Voter 1: Vidar
         # HW 2: Verify that register works (register)
         self.server.RegisterVoter(eVoting_pb2.Voter(name="Vidar", group="Group A", public_key=verify_key_bytes))
         print(self.server.registration_table)
@@ -95,6 +96,12 @@ class eVotingServicer(eVoting_pb2_grpc.eVotingServicer):
         self.server.RegisterVoter(eVoting_pb2.Voter(name="Vidar", group="Group A", public_key=verify_key_bytes))
         print(self.server.registration_table)
         print("-------------Re-reg done(0)-------------\n")
+        
+        # Voter 2: Alice
+        # HW 2: Verify that register works (register)
+        self.server.RegisterVoter(eVoting_pb2.Voter(name="Alice", group="Group A", public_key=verify_key_bytes))
+        print(self.server.registration_table)
+        print("-------------Reg done(0)-------------\n")
 
 
     # HW2: RPC call
@@ -148,11 +155,14 @@ class eVotingServicer(eVoting_pb2_grpc.eVotingServicer):
             # Status.code=2 : Missing groups or choices specification 
             if len(request.choices) == 0 or len(request.groups) == 0:
                 return eVoting_pb2.Status(code = 2)
+
+            if request.name in self.server.election_table:
+                return eVoting_pb2.Status(code = 4)
             
             # Status.code=0 : Election created successfully
             votes = {}
             for c in request.choices:
-                votes[c] = 0;
+                votes[c] = 0
             self.server.election_table[request.name] = {
                 "end_date" : request.end_date.ToDatetime(),\
                 "groups" : request.groups,\
