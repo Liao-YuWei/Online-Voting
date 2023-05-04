@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 import base64
 
 def run():
-    port = '34652'
+    port = '50051'
     channel = grpc.insecure_channel('localhost:' + port)
     stub = eVoting_pb2_grpc.eVotingStub(channel)
 
@@ -24,6 +24,7 @@ def run():
     with open("private_key", "rb") as f:
         key = f.read()
 
+    key = base64.b64decode(key)
     sign_key = SigningKey(key)
     
     voter_list = ['Vidar', 'Alice']
