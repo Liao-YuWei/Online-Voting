@@ -21,11 +21,24 @@ def run():
     stub = eVoting_pb2_grpc.eVotingStub(channel)
 
     # HW2: Reading private key 
-    with open("private_key", "rb") as f:
-        key = f.read()
+    with open("private_key_vidar", "rb") as f:
+        Vidar_key= f.read()
+        # Vidar_key = f.readline()
+        # Alice_key = f.readline()
+    with open("private_key_alice", "rb") as f:
+        Alice_key= f.read()
+    # Vidar_key = key[0:32]
+    # Alice_key = key[32:64]
 
     # key = base64.b64decode(key)
-    sign_key = SigningKey(key)
+    # sign_key = SigningKey(key)
+    
+    print(Vidar_key)
+    print(Alice_key)
+    sign_key_list = []
+    sign_key_list.append(SigningKey(Vidar_key))
+    sign_key_list.append(SigningKey(Alice_key))
+    
     
     voter_list = ['Vidar', 'Alice']
     # HW2: PreAuth
@@ -34,7 +47,7 @@ def run():
 
     # HW2: Auth
     challenge = pre_response.value
-    signed = sign_key.sign(challenge)
+    signed = sign_key_list[voter_id].sign(challenge)
     signature = signed.signature
 
     auth_response = stub.Auth(eVoting_pb2.AuthRequest(

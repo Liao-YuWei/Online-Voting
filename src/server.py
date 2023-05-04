@@ -93,7 +93,8 @@ class Server:
         # self.db_obj.add_election(election.name , due , election.groups , election.choices)
     
     def isDue_election(self,index):
-        election = self.get_election(index)
+        db = Db(self.db_ip, self.db_port)
+        election = db.get_election(index)
         return datetime.now() > election["end_date"]
         # return datetime.now() > self.db_obj.get_election(index)["end_date"]
         
@@ -183,8 +184,8 @@ class eVotingServicer(eVoting_pb2_grpc.eVotingServicer):
     def __init__(self, db_port):
         self.server = Server(db_port)
         sign_key = SigningKey.generate()
-        with open("private_key", "wb") as f:
-            f.write(sign_key.encode())
+        # with open("private_key_vidar", "wb") as f:
+        #     f.write(sign_key.encode())
         verify_key = sign_key.verify_key
         verify_key_bytes = verify_key.encode()
         # with open("public_key", "rb") as f:
@@ -192,43 +193,61 @@ class eVotingServicer(eVoting_pb2_grpc.eVotingServicer):
 
         # Voter 1: Vidar
         # HW 2: Verify that register works (register)
-        self.server.RegisterVoter(eVoting_pb2.Voter(name="Vidar", group="Group A", public_key=verify_key_bytes))
+        reg_response = self.server.RegisterVoter(eVoting_pb2.Voter(name="Vidar", group="Group A", public_key=verify_key_bytes))
+        if reg_response.code == 0:
+            with open("private_key_vidar", "wb") as f:
+                f.write(sign_key.encode()) 
         print("Voter list:")
         self.server.get_registers_name_list()
         # print(self.server.registration_table)
         print("-------------Reg done(0)-------------\n")
 
         # HW 2: Verify that register works (duplicate)
-        self.server.RegisterVoter(eVoting_pb2.Voter(name="Vidar", group="Group A", public_key=verify_key_bytes))
+        reg_response = self.server.RegisterVoter(eVoting_pb2.Voter(name="Vidar", group="Group A", public_key=verify_key_bytes))
+        print(reg_response.code)
         print("Voter list:")
         self.server.get_registers_name_list()
         # print(self.server.registration_table)
         print("-------------Reg done(1)-------------\n")
 
         # HW 2: Verify that voter works (unregister)
-        self.server.UnregisterVoter(eVoting_pb2.VoterName(name="Vidar"))
+        reg_response = self.server.UnregisterVoter(eVoting_pb2.VoterName(name="Vidar"))
+        print(reg_response.code)
         print("Voter list:")
         self.server.get_registers_name_list()
         # print(self.server.registration_table)
         print("-------------UnReg done(0)-------------\n")
         
         # HW 2: Verify that voter works (exists)
-        self.server.UnregisterVoter(eVoting_pb2.VoterName(name="Vidar"))
+        reg_response = self.server.UnregisterVoter(eVoting_pb2.VoterName(name="Vidar"))
+        print(reg_response.code)
         print("Voter list:")
         self.server.get_registers_name_list()
         # print(self.server.registration_table)
         print("-------------UnReg done(1)-------------\n")
 
         # HW 2: Verify that register works (re-register for next part)
-        self.server.RegisterVoter(eVoting_pb2.Voter(name="Vidar", group="Group A", public_key=verify_key_bytes))
+        reg_response = self.server.RegisterVoter(eVoting_pb2.Voter(name="Vidar", group="Group A", public_key=verify_key_bytes))
+        if reg_response.code == 0:
+            with open("private_key_vidar", "wb") as f:
+                f.write(sign_key.encode()) 
         print("Voter list:")
         self.server.get_registers_name_list()
         # print(self.server.registration_table)
         print("-------------Re-reg done(0)-------------\n")
+
+        sign_key = SigningKey.generate()
+        # with open("private_key_alice", "wb") as f:
+        #     f.write(sign_key.encode())
+        verify_key = sign_key.verify_key
+        verify_key_bytes = verify_key.encode()
         
         # Voter 2: Alice
         # HW 2: Verify that register works (register)
-        self.server.RegisterVoter(eVoting_pb2.Voter(name="Alice", group="Group A", public_key=verify_key_bytes))
+        reg_response = self.server.RegisterVoter(eVoting_pb2.Voter(name="Alice", group="Group A", public_key=verify_key_bytes))
+        if reg_response.code == 0:
+            with open("private_key_alice", "wb") as f:
+                f.write(sign_key.encode()) 
         print("Voter list:")
         self.server.get_registers_name_list()
         # print(self.server.registration_table)
@@ -260,10 +279,10 @@ class eVotingServicer(eVoting_pb2_grpc.eVotingServicer):
 
         signature = auth_req.response.value
 
-        try:
-            public_key.verify(smessage=challenge, signature = signature)
-        except:
-            return eVoting_pb2.AuthToken(value = bytes("invalid", encoding="utf-8"))
+        # try:
+        public_key.verify(smessage=challenge, signature = signature)
+        # except:
+        #     return eVoting_pb2.AuthToken(value = bytes("invalid", encoding="utf-8"))
 
         token = secrets.token_bytes(4)  # token size = 4
         expired_time = datetime.now()+timedelta(hours=1)
