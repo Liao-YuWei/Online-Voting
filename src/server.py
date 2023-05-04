@@ -27,7 +27,7 @@ class Server:
     def __init__(self, db_port):
         self.db_ip = 'localhost'
         self.db_port = db_port
-        #self.db_obj = Db(self.db_ip, self.db_port)
+        # self.db_obj = Db(self.db_ip, self.db_port)
         self.registration_table = {}
         self.challenge_table = {}
         self.token_table = {}
@@ -41,6 +41,7 @@ class Server:
     def get_registers_name_list(self):
         db = Db(self.db_ip, self.db_port)
         return db.get_registers_name_list()
+        # return self.db_obj.get_registers_name_list()
 
 
     def add_register(self, index, group, public_key):
@@ -49,16 +50,21 @@ class Server:
         return status
         # return self.db_obj.add_register(index, group, public_key)
 
-    
+    def delete_register(self, index):
+        db = Db(self.db_ip, self.db_port)
+        status = db.delete_register(index)
+        return status
+        # return self.db_obj.delete_register(index, group, public_key)
+
     def add_challenge(self, index, challenge):
         db = Db(self.db_ip, self.db_port)
         db.add_challenge(index , challenge)
-        #self.db_obj.add_challenge(index, challenge)
+        # self.db_obj.add_challenge(index, challenge)
 
     def get_challenge(self, index):
         db = Db(self.db_ip, self.db_port)
         return db.get_challenge(index)
-        #return self.db_obj.get_challenge(index)
+        # return self.db_obj.get_challenge(index)
 
     def get_register_publicKey(self, index):
         db = Db(self.db_ip, self.db_port)
@@ -70,7 +76,7 @@ class Server:
     def add_token(self, index, name, expired_time):
         db = Db(self.db_ip, self.db_port)
         db.add_token(index, expired_time, name)
-        #self.db_obj.add_token(index, expired_time, name)
+        # self.db_obj.add_token(index, expired_time, name)
 
     def is_Valid_token(self, index):
         db = Db(self.db_ip, self.db_port)
@@ -89,61 +95,71 @@ class Server:
     def isDue_election(self,index):
         election = self.get_election(index)
         return datetime.now() > election["end_date"]
+        # return datetime.now() > self.db_obj.get_election(index)["end_date"]
+        
 
     def add_vote(self, index, choice, voter_name):
         db = Db(self.db_ip, self.db_port)
-        dbadd_vote(index, choice, voter_name)
+        db.add_vote(index, choice, voter_name)
+        # self.db_obj.add_vote(index, choice, voter_name)
+        
     
     def repeated_vote(self, election_name, voter_name):
         db = Db(self.db_ip, self.db_port)
         return voter_name in db.get_election(election_name)["voters"]
+        # return voter_name in self.db_obj.get_election(election_name)["voters"]
 
     def valid_group(self, election_name, group):
         db = Db(self.db_ip, self.db_port)
         return group in db.get_election(election_name)["groups"]
+        # return group in self.db_obj.get_election(election_name)["groups"]
     
     def get_voter_name(self, token):
         db = Db(self.db_ip, self.db_port)
         expired, name = db.get_token(token)
-        return name
+        # expired, name = self.db_obj.get_token(token)
+        # return name
 
     def get_voter_group(self, voter_name):
         db = Db(self.db_ip, self.db_port)
         group, public_key = db.get_register(voter_name)
-        return group
+        # group, public_key = self.db._obj.get_register(voter_name)
+        # return group
 
     def existed_election(self, index):
         db = Db(self.db_ip, self.db_port)
         return index in db.get_all_elections()
+        # return index in self.db_obj.get_all_elections()
 
     def due_election(self, index):
         db = Db(self.db_ip, self.db_port)
-        return date.now() > db.get_election(index)["end_date"]
+        return datetime.now() > db.get_election(index)["end_date"]
+        # return datetime.now() > self.db_obj.get_election(index)["end_date"]
 
     def get_result(self, index):
         db = Db(self.db_ip, self.db_port)
         return db.get_election(index)["votes"]
+        # return self.db_obj.get_election(index)["votes"]
 
 
 
     # HW 2, A: Local Server API (RegisterVoter, UnregisterVoter)
     def RegisterVoter(self, voter: eVoting_pb2.Voter) -> eVoting_pb2.Status:
-        # try:
-        index = voter.name
-        print(f'1. Registering voter {index}')
-        public_key = VerifyKey(voter.public_key,encoder=Base64Encoder)
-        # self.registration_table[index] = {"group": voter.group, "public_key": public_key}
-        status_code = self.add_register(index, voter.group, public_key)
-        print(type(public_key))
-        if status_code == 0:
-            print(f"Voter: {index} is registered")
-            return eVoting_pb2.Status(code=0)
-        elif status_code == 1:
-            print(f"Voter {index} is already registered")
-            return eVoting_pb2.Status(code=1)
-        # except:
-        #     print(f"Voter register: undefined error!")
-        #     return eVoting_pb2.Status(code=2)
+        try:
+            index = voter.name
+            print(f'1. Registering voter {index}')
+            public_key = VerifyKey(voter.public_key)
+            # self.registration_table[index] = {"group": voter.group, "public_key": public_key}
+            status_code = self.add_register(index, voter.group, public_key)
+            if status_code == 0:
+                print(f"Voter: {index} is registered")
+                return eVoting_pb2.Status(code=0)
+            elif status_code == 1:
+                print(f"Voter {index} is already registered")
+                return eVoting_pb2.Status(code=1)
+        except:
+            print(f"Voter register: undefined error!")
+            return eVoting_pb2.Status(code=2)
 
     def UnregisterVoter(self, votername: eVoting_pb2.VoterName) -> eVoting_pb2.Status:
         try:
@@ -166,13 +182,13 @@ class eVotingServicer(eVoting_pb2_grpc.eVotingServicer):
 
     def __init__(self, db_port):
         self.server = Server(db_port)
-        # sign_key = SigningKey.generate()
-        # with open("private_key", "wb") as f:
-        #     f.write(sign_key.encode())
-        # verify_key = sign_key.verify_key
-        # verify_key_bytes = verify_key.encode()
-        with open("public_key", "rb") as f:
-            verify_key_bytes = f.read()
+        sign_key = SigningKey.generate()
+        with open("private_key", "wb") as f:
+            f.write(sign_key.encode())
+        verify_key = sign_key.verify_key
+        verify_key_bytes = verify_key.encode()
+        # with open("public_key", "rb") as f:
+        #     verify_key_bytes = f.read()
 
         # Voter 1: Vidar
         # HW 2: Verify that register works (register)
@@ -242,15 +258,12 @@ class eVotingServicer(eVoting_pb2_grpc.eVotingServicer):
         public_key = self.server.get_register_publicKey(index)
         challenge = self.server.get_challenge(index)
 
-        print(type(public_key))
         signature = auth_req.response.value
-        print(challenge, public_key)
 
-        # try:
-        #public_key = VerifyKey(public_key)
-        public_key.verify(smessage=challenge, signature = signature)
-        # except:
-        #     return eVoting_pb2.AuthToken(value = bytes("invalid", encoding="utf-8"))
+        try:
+            public_key.verify(smessage=challenge, signature = signature)
+        except:
+            return eVoting_pb2.AuthToken(value = bytes("invalid", encoding="utf-8"))
 
         token = secrets.token_bytes(4)  # token size = 4
         expired_time = datetime.now()+timedelta(hours=1)

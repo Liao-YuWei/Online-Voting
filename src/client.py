@@ -24,7 +24,7 @@ def run():
     with open("private_key", "rb") as f:
         key = f.read()
 
-    key = base64.b64decode(key)
+    # key = base64.b64decode(key)
     sign_key = SigningKey(key)
     
     voter_list = ['Vidar', 'Alice']
@@ -57,7 +57,7 @@ def run():
     # print(f'AuthToken: {response.value.decode()}\n')
 
     # election config 
-    election_name = 'what color do you like ?'
+    election_name = 'what color do you like'
     groups = ["Group A", "Group B"]
     choices = ["Red", "Blue", "White", "Yellow"]
     due = datetime.now() + timedelta(seconds=100)

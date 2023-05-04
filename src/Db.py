@@ -106,11 +106,10 @@ class Db:
             group = data[0]
             bytes_need = self.bytes_needed(int(data[1]))
             public_key = int(data[1]).to_bytes(bytes_need, byteorder="big")
-            print(len(public_key))
             # missing_padding = 4 - len(public_key) % 4
             # if missing_padding:
             #    public_key += b'=' * missing_padding
-            public_key = VerifyKey(public_key,encoder=Base64Encoder)
+            public_key = VerifyKey(public_key)
             return group, public_key
 
     def add_challenge(self, name, challenge):
