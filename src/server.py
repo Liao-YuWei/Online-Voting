@@ -112,20 +112,23 @@ class Server:
 
     def valid_group(self, election_name, group):
         db = Db(self.db_ip, self.db_port)
-        return group in db.get_election(election_name)["groups"]
+        election = db.get_election(election_name)
+        print('group is',group)
+        return group in election['groups']
         # return group in self.db_obj.get_election(election_name)["groups"]
     
     def get_voter_name(self, token):
         db = Db(self.db_ip, self.db_port)
         expired, name = db.get_token(token)
         # expired, name = self.db_obj.get_token(token)
-        # return name
+        return name
 
     def get_voter_group(self, voter_name):
         db = Db(self.db_ip, self.db_port)
         group, public_key = db.get_register(voter_name)
+        #print('group is public key is',voter_name)
         # group, public_key = self.db._obj.get_register(voter_name)
-        # return group
+        return group
 
     def existed_election(self, index):
         db = Db(self.db_ip, self.db_port)
@@ -134,13 +137,16 @@ class Server:
 
     def due_election(self, index):
         db = Db(self.db_ip, self.db_port)
-        return datetime.now() > db.get_election(index)["end_date"]
+        election = db.get_election(index)
+        return datetime.now() > election["end_date"]
+        #return datetime.now() > db.get_election(index)["end_date"]
         # return datetime.now() > self.db_obj.get_election(index)["end_date"]
 
     def get_result(self, index):
         db = Db(self.db_ip, self.db_port)
         return db.get_election(index)["votes"]
         # return self.db_obj.get_election(index)["votes"]
+
 
 
 
@@ -402,7 +408,7 @@ class eVotingServicer(eVoting_pb2_grpc.eVotingServicer):
         
         # ElectionResult.status = 2: The election is still ongoing. Election result is not available yet
         # if datetime.now() > self.server.election_table[request.name]["end_date"]:
-        if not self.server.due_election(index):
+        if self.server.due_election(index):
             result.status = 2
             return result
         
