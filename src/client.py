@@ -32,42 +32,28 @@ def run():
 
     # key = base64.b64decode(key)
     # sign_key = SigningKey(key)
-    
-    print(Vidar_key)
-    print(Alice_key)
     sign_key_list = []
     sign_key_list.append(SigningKey(Vidar_key))
     sign_key_list.append(SigningKey(Alice_key))
-    
-    
     voter_list = ['Vidar', 'Alice']
+
+    """
+    Using voter 'Vidar' to create election first
+    """
     # HW2: PreAuth
-    voter_id = int(input('Input your voter id (0: Viadr, 1: Alice)\n'))
-    pre_response = stub.PreAuth(eVoting_pb2.VoterName(name = voter_list[voter_id]))
+    pre_response = stub.PreAuth(eVoting_pb2.VoterName(name = voter_list[0]))
 
     # HW2: Auth
     challenge = pre_response.value
-    signed = sign_key_list[voter_id].sign(challenge)
+    signed = sign_key_list[0].sign(challenge)
     signature = signed.signature
 
     auth_response = stub.Auth(eVoting_pb2.AuthRequest(
-        name = eVoting_pb2.VoterName(name = voter_list[voter_id]),\
+        name = eVoting_pb2.VoterName(name = voter_list[0]),\
         response = eVoting_pb2.Response(value = bytes(signature))\
     ))
 
     token = auth_response.value
-
-    # response = stub.PreAuth(eVoting_pb2.VoterName(name = 'Alice'))
-    print('Response message of PreAuth.')
-    print(f'PreAuth: {pre_response.value}\n')
-
-    print('Response message of Auth.')
-    print(f'Auth: {auth_response.value}\n')
-
-    # response = stub.Auth(eVoting_pb2.AuthRequest(name = eVoting_pb2.VoterName(name = 'Alice'), \
-    #                                              response = eVoting_pb2.Response(value = '1'.encode())))
-    # print('Response message of Auth')
-    # print(f'AuthToken: {response.value.decode()}\n')
 
     # election config 
     election_name = 'what color do you like'
@@ -84,28 +70,75 @@ def run():
 
     creat_election_response = stub.CreateElection(curElection)
     print('Response message of CreateElection')
-    print(f'Status: {creat_election_response.code}\n')
+    print(f'Status: {creat_election_response.code}')
 
-    
-    # call castvote
-    #r = random.randint(0, 3)
-    r = int(input("choice id (0: red, 1: blue, 2: white, 3: yellow)\n"))
-    castvote_response = stub.CastVote(eVoting_pb2.Vote(election_name = election_name, \
-                                                    choice_name = choices[r], \
-                                                    token = eVoting_pb2.AuthToken(value = bytes(token))))
-    
-    print('Response message of CastVote')
-    print(f'Status: {castvote_response.code}\n')
-    
-    sleep(1)
-    # call getresult
-    get_result_response = stub.GetResult(eVoting_pb2.ElectionName(name = election_name))
-    print('Response message of GetResult ')
-    print(f'Status: {get_result_response.status}\n')
+    for i in range(2):
+        # HW2: PreAuth
+        voter_id = int(input('\nInput your voter id (0: Viadr, 1: Alice)\n'))
+        pre_response = stub.PreAuth(eVoting_pb2.VoterName(name = voter_list[voter_id]))
 
-    # result
-    for votecnt in get_result_response.counts:
-        print("Choice {} got {} ballots in election!".format(votecnt.choice_name, votecnt.count))
+        # HW2: Auth
+        challenge = pre_response.value
+        signed = sign_key_list[voter_id].sign(challenge)
+        signature = signed.signature
+
+        auth_response = stub.Auth(eVoting_pb2.AuthRequest(
+            name = eVoting_pb2.VoterName(name = voter_list[voter_id]),\
+            response = eVoting_pb2.Response(value = bytes(signature))\
+        ))
+
+        token = auth_response.value
+
+        # # election config 
+        # election_name = 'what color do you like'
+        # groups = ["Group A", "Group B"]
+        # choices = ["Red", "Blue", "White", "Yellow"]
+        # due = datetime.now() + timedelta(seconds=100)
+
+        # curElection = eVoting_pb2.Election()
+        # curElection.name = election_name
+        # curElection.groups.extend(groups)
+        # curElection.choices.extend(choices)
+        # curElection.end_date.FromDatetime(due)
+        # curElection.token.value = bytes(token)
+
+        # creat_election_response = stub.CreateElection(curElection)
+        # print('Response message of CreateElection')
+        # print(f'Status: {creat_election_response.code}\n')
+
+        # response = stub.PreAuth(eVoting_pb2.VoterName(name = 'Alice'))
+        print('Response message of PreAuth.')
+        print(f'PreAuth: {pre_response.value}\n')
+
+        print('Response message of Auth.')
+        print(f'Auth: {auth_response.value}\n')
+
+        # response = stub.Auth(eVoting_pb2.AuthRequest(name = eVoting_pb2.VoterName(name = 'Alice'), \
+        #                                              response = eVoting_pb2.Response(value = '1'.encode())))
+        # print('Response message of Auth')
+        # print(f'AuthToken: {response.value.decode()}\n')
+
+        
+        
+        # call castvote
+        #r = random.randint(0, 3)
+        r = int(input("choice id (0: red, 1: blue, 2: white, 3: yellow)\n"))
+        castvote_response = stub.CastVote(eVoting_pb2.Vote(election_name = election_name, \
+                                                        choice_name = choices[r], \
+                                                        token = eVoting_pb2.AuthToken(value = bytes(token))))
+        
+        print('Response message of CastVote')
+        print(f'Status: {castvote_response.code}\n')
+        
+        sleep(1)
+        # call getresult
+        get_result_response = stub.GetResult(eVoting_pb2.ElectionName(name = election_name))
+        print('Response message of GetResult ')
+        print(f'Status: {get_result_response.status}\n')
+
+        # result
+        for votecnt in get_result_response.counts:
+            print("Choice {} got {} ballots in election!".format(votecnt.choice_name, votecnt.count))
 
 
     

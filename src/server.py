@@ -107,13 +107,13 @@ class Server:
     
     def repeated_vote(self, election_name, voter_name):
         db = Db(self.db_ip, self.db_port)
-        return voter_name in db.get_election(election_name)["voters"]
+        election = db.get_election(election_name)
+        return voter_name in election["voters"]
         # return voter_name in self.db_obj.get_election(election_name)["voters"]
 
     def valid_group(self, election_name, group):
         db = Db(self.db_ip, self.db_port)
         election = db.get_election(election_name)
-        print('group is',group)
         return group in election['groups']
         # return group in self.db_obj.get_election(election_name)["groups"]
     

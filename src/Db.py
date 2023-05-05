@@ -162,7 +162,6 @@ class Db:
     def add_election(self, election_name, end_date, groups, choices):
         conn = dbapi2.connect(**db_settings)
         with conn.cursor() as cursor:
-            election_name = election_name.replace('?', '')
             end_date_tostr = end_date.strftime("%m/%d/%Y, %H:%M:%S")
             groups_tostr = ','.join(groups)
             voters = ''
