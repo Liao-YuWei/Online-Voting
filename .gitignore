@@ -1,4 +1,6 @@
 src/__pycache__
+src/private_key_alice
+src/private_key_vidar
 
 rqlite-v7.3.2-linux-amd64/node.1
 rqlite-v7.3.2-linux-amd64/node.2
