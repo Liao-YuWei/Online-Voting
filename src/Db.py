@@ -1,4 +1,3 @@
-#import pymysql as dbapi2
 import pyrqlite.dbapi2 as dbapi2
 from math import log
 import os
@@ -9,16 +8,10 @@ from nacl.encoding import Base64Encoder
 TOKEN_SIZE = 4
 CHALLENGE_SIZE = 4
 
-
 db_settings = {
     "host": "localhost",
-    "port": 4401,
-    #"user": "root",
-    #"password": "evoting2022",
-    #"db": "evoting",
-    #"charset": "utf8"
+    "port": 4401
 }
-
 
 class Db:
     def __init__(self, ip, port):
@@ -91,8 +84,6 @@ class Db:
             print()
         conn.close()
 
-
-
     def get_register(self, name):
         conn = dbapi2.connect(**db_settings)
         with conn.cursor() as cursor:
@@ -106,9 +97,6 @@ class Db:
             group = data[0]
             bytes_need = self.bytes_needed(int(data[1]))
             public_key = int(data[1]).to_bytes(bytes_need, byteorder="big")
-            # missing_padding = 4 - len(public_key) % 4
-            # if missing_padding:
-            #    public_key += b'=' * missing_padding
             public_key = VerifyKey(public_key)
             return group, public_key
 
